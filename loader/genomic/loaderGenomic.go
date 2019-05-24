@@ -109,8 +109,7 @@ var (
    NumThreads: defines the amount of go subroutines to use when parelellizing the encryption
 */
 var (
-	NumElMap   = int64(5e6)
-	NumThreads = int(20)
+	NumElMap = int64(5e6)
 )
 
 // SensitiveIDValue contains both concept path and annotation which will be linked to a certain sensitive ID
@@ -1235,27 +1234,9 @@ func GenerateRandomBytes(n int) ([]byte, error) {
 func EncryptElements(list []int64, group *onet.Roster) *libunlynx.CipherVector {
 	// ENCRYPTION
 	start := time.Now()
-	listEncryptedElements := make(libunlynx.CipherVector, len(list))
 
 	// parallelize the encryption (we need this because this is so slow)
-	blockSize := int64(len(list)) / int64(NumThreads)
-	wg := libunlynx.StartParallelize(NumThreads)
-	for i := 0; i < NumThreads; i++ {
-		blockEnd := int64(i)*blockSize + blockSize
-		// the last goroutine gets the remaining content of the array
-		if i == NumThreads-1 {
-			blockEnd = int64(len(list))
-		}
-
-		go func(init int64, length int64) {
-			defer wg.Done()
-			for j := init; j < length; j++ {
-				listEncryptedElements[j] = *libunlynx.EncryptInt(group.Aggregate, list[j])
-			}
-			log.LLvl1("Encrypted (", length-init, ")elements")
-		}(int64(i)*blockSize, blockEnd)
-	}
-	libunlynx.EndParallelize(wg)
+	listEncryptedElements := *libunlynx.EncryptIntVector(group.Aggregate, list)
 
 	log.LLvl1("Finished encrypting the sensitive data... (", time.Since(start), ")")
 

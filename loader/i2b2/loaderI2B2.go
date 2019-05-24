@@ -831,11 +831,8 @@ func EncryptAndTag(list []int64, group *onet.Roster, entryPointIdx int) ([]libun
 
 	// ENCRYPTION
 	start := time.Now()
-	listEncryptedElements := make(libunlynx.CipherVector, len(list))
+	listEncryptedElements := *libunlynx.EncryptIntVector(group.Aggregate, list)
 
-	for i := int64(0); i < int64(len(list)); i++ {
-		listEncryptedElements[i] = *libunlynx.EncryptInt(group.Aggregate, list[i])
-	}
 	log.Lvl2("Finished encrypting the sensitive data... ["+strconv.FormatInt(int64(len(listEncryptedElements)), 10)+"] (", time.Since(start), ")")
 
 	// TAGGING
