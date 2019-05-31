@@ -163,12 +163,6 @@ func TestGenerateFilesGroupFile(t *testing.T) {
 	generateFiles(t, el, 0)
 }
 
-func TestReplayDataset(t *testing.T) {
-	t.Skip()
-	err := loadergenomic.ReplayDataset(genomicFile, 2)
-	assert.True(t, err == nil)
-}
-
 func TestGenerateLoadingScript(t *testing.T) {
 	dbSettings := loader.DBSettings{DBhost: "localhost", DBport: 5434, DBname: "medcodeployment", DBuser: "postgres", DBpassword: "prigen2017"}
 	err := loadergenomic.GenerateLoadingOntologyScript(dbSettings)

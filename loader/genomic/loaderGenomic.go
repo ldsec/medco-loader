@@ -19,9 +19,6 @@ import (
 	"time"
 )
 
-// I2B2METADATA path to i2b2metadata schema
-const I2B2METADATA = "i2b2metadata_i2b2."
-
 // I2B2DEMODATA path to i2b2demodata schema
 const I2B2DEMODATA = "i2b2demodata_i2b2."
 
@@ -137,72 +134,6 @@ var (
 	OntValues       map[ConceptPath]ConceptID // stores the concept path and the correspondent ID
 	TextSearchIndex int64                     // needed for the observation_fact table (counter)
 )
-
-// ReplayDataset replays the dataset x number of times
-func ReplayDataset(filename string, x int) error {
-	log.LLvl1("Replaying dataset", x, "times...")
-
-	// open file to read
-	fGenomic, err := os.Open(filename)
-	if err != nil {
-		log.Fatal("Cannot open file to read:", err)
-		return err
-	}
-
-	reader := csv.NewReader(fGenomic)
-	reader.Comma = '\t'
-
-	// read all genomic file
-	record, err := reader.ReadAll()
-	if err != nil {
-		log.Fatal("Error in the ReplayDataset() - reading:", err)
-		return err
-	}
-
-	finalResult := record[:]
-
-	header := true
-	// replay x times
-	for t := 0; t < x-1; t++ {
-		for _, el := range record {
-			// not a comment or blank line
-			if string(el[0]) == "" || string(el[0][0:1]) == "#" {
-				continue
-			}
-
-			// HEADER time...
-			if header == true {
-				header = false
-				continue
-			}
-
-			finalResult = append(finalResult, el)
-		}
-	}
-
-	fGenomic.Close()
-
-	// open file to write
-	fGenomic, err = os.Create(filename)
-	if err != nil {
-		log.Fatal("Cannot open file to write:", err)
-		return err
-	}
-
-	writer := csv.NewWriter(fGenomic)
-	writer.Comma = '\t'
-
-	err = writer.WriteAll(finalResult)
-	if err != nil {
-		log.Fatal("Error in the ReplayDataset() - writing:", err)
-		return err
-	}
-
-	fGenomic.Close()
-
-	return nil
-
-}
 
 // LoadGenomicData initiates the loading process
 func LoadGenomicData(el *onet.Roster, entryPointIdx int, fOntClinical, fOntGenomic, fClinical, fGenomic *os.File, outputPath string, allSensitive bool, mapSensitive map[string]struct{}, databaseS loader.DBSettings, testing bool) error {
@@ -482,8 +413,6 @@ func GenerateLoadingOntologyScript(databaseS loader.DBSettings) error {
     			GRANT ALL privileges on all tables in schema genomic_annotations to i2b2;` + "\n"
 
 	for i := 0; i < len(TablenamesOntology); i++ {
-
-		//TODO: Delete this please
 		if TablenamesOntology[i] != ONT+"non_sensitive_clear" {
 			loading += "TRUNCATE " + TablenamesOntology[i] + ";\n"
 			loading += `\copy ` + TablenamesOntology[i] + ` FROM '` + FilePathsOntology[i] + `' ESCAPE '"' DELIMITER ',' CSV;` + "\n"
@@ -1126,7 +1055,7 @@ func generateGenomicID(indexGenVariant map[string]int, record []string) (int64, 
 		return int64(-1), err
 	}
 
-	id, err := loader.GetVariantID(record[indexGenVariant["CHR"]], aux, record[indexGenVariant["RA"]], record[indexGenVariant["TSA1"]])
+	id, err := loader.GetVariantID(record[indexGenVariant["CHR"]], aux, record[indexGenVariant["RA"]], record[indexGenVariant["TSA2"]])
 	if err != nil {
 		return int64(-1), err
 	}
@@ -1203,8 +1132,8 @@ func generateMedCoOntologyGenomicAnnotation(fields []string, record []string) st
 func writeMedCoOntologyGenomicAnnotations(listEncryptedElements *libunlynx.CipherVector, annotations []string) error {
 	for i, annotation := range annotations {
 		if annotation != "NA" && annotation != "" {
-			ciphertextStr := (*listEncryptedElements)[i].Serialize()
-			_, err := FileHandlers[2].WriteString(`"` + ciphertextStr + `",` + annotation)
+			ciphertextStr, err := (*listEncryptedElements)[i].Serialize()
+			_, err = FileHandlers[2].WriteString(`"` + ciphertextStr + `",` + annotation)
 
 			if err != nil {
 				log.Fatal("Error in the writeMedCoOntologyGenomicAnnotations():", err)
@@ -1247,9 +1176,9 @@ func EncryptElements(list []int64, group *onet.Roster) *libunlynx.CipherVector {
 // TagElements tags the genomic ids to allow for the comparison
 func TagElements(listEncryptedElements *libunlynx.CipherVector, group *onet.Roster, entryPointIdx int) ([]libunlynx.GroupingKey, error) {
 	// TAGGING
-	start := time.Now()
+	//start := time.Now()
 	client := servicesmedco.NewMedCoClient(group.List[entryPointIdx], strconv.Itoa(entryPointIdx))
-	_, result, tr, err := client.SendSurveyDDTRequestTerms(
+	_, result, err := client.SendSurveyDDTRequestTerms(
 		group, // Roster
 		servicesmedco.SurveyID("tagging_loading_phase"), // SurveyID
 		*listEncryptedElements,                          // Encrypted query terms to tag
@@ -1262,13 +1191,13 @@ func TagElements(listEncryptedElements *libunlynx.CipherVector, group *onet.Rost
 		return nil, err
 	}
 
-	totalTime := time.Since(start)
+	/*totalTime := time.Since(start)
 
 	tr.DDTRequestTimeCommunication = totalTime - tr.DDTRequestTimeExec
 
 	log.LLvl1("DDT took: exec -", tr.DDTRequestTimeExec, "commun -", tr.DDTRequestTimeCommunication)
 
-	log.LLvl1("Finished tagging the sensitive data... (", totalTime, ")")
+	log.LLvl1("Finished tagging the sensitive data... (", totalTime, ")")*/
 
 	return result, nil
 }
@@ -1399,16 +1328,21 @@ func writeDemodataPatientMapping(el string, id int64) error {
 func writeDemodataPatientDimension(group *onet.Roster, id int64) error {
 
 	encryptedFlag := libunlynx.EncryptInt(group.Aggregate, 1)
-	encryptedFlagString := encryptedFlag.Serialize()
+	encryptedFlagString, err := encryptedFlag.Serialize()
+
+	if err != nil {
+		log.Error("Error in the writeDemodataPatientDimension()-Serialization:", err)
+		return err
+	}
 
 	/*patientDimension := `INSERT INTO i2b2demodata.patient_dimension VALUES (` + strconv.FormatInt(id, 10) + `, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'NOW()', NULL, 1, '` + base64.StdEncoding.EncodeToString(b) + `');` + "\n"*/
 
 	patientDimension := `"` + strconv.FormatInt(id, 10) + `",,,,,,,,,,,,,,,,"NOW()",,"1","` + encryptedFlagString + `"` + "\n"
 
-	_, err := FileHandlers[6].WriteString(patientDimension)
+	_, err = FileHandlers[6].WriteString(patientDimension)
 
 	if err != nil {
-		log.Fatal("Error in the writeDemodataPatientDimension()-Hive:", err)
+		log.Error("Error in the writeDemodataPatientDimension()-Hive:", err)
 		return err
 	}
 
