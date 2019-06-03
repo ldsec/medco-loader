@@ -49,15 +49,17 @@ func getRoster(groupFilePath string) (*onet.Roster, *onet.LocalTest, error) {
 	}
 }
 
-func setupEncryptEnv() {
+func setupEncryptEnv() error {
 	elAux, localAux, err := getRoster("")
 	if err != nil {
-		log.Fatal("Something went wrong when creating a testing environment!")
+		log.Error("Something went wrong when creating a testing environment!")
+		return err
 	}
 	el = elAux
 	local = localAux
 
 	_, publicKey = libunlynx.GenKey()
+	return nil
 }
 
 func TestConvertTableAccess(t *testing.T) {
@@ -200,33 +202,33 @@ func TestConvertAll(t *testing.T) {
 
 	assert.Nil(t, loaderi2b2.ConvertLocalOntology(el, 0))
 
-	log.LLvl1("--- Finished converting LOCAL_ONTOLOGY ---")
+	log.Lvl2("--- Finished converting LOCAL_ONTOLOGY ---")
 
 	assert.Nil(t, loaderi2b2.GenerateMedCoOntology())
 
-	log.LLvl1("--- Finished generating MEDCO_ONTOLOGY ---")
+	log.Lvl2("--- Finished generating MEDCO_ONTOLOGY ---")
 
 	assert.Nil(t, loaderi2b2.ParseDummyToPatient())
 
 	assert.Nil(t, loaderi2b2.ParsePatientDimension(publicKey))
 	assert.Nil(t, loaderi2b2.ConvertPatientDimension(publicKey, true))
 
-	log.LLvl1("--- Finished converting PATIENT_DIMENSION ---")
+	log.Lvl2("--- Finished converting PATIENT_DIMENSION ---")
 
 	assert.Nil(t, loaderi2b2.ParseVisitDimension())
 	assert.Nil(t, loaderi2b2.ConvertVisitDimension(true))
 
-	log.LLvl1("--- Finished converting VISIT_DIMENSION ---")
+	log.Lvl2("--- Finished converting VISIT_DIMENSION ---")
 
 	assert.Nil(t, loaderi2b2.ParseConceptDimension())
 	assert.Nil(t, loaderi2b2.ConvertConceptDimension())
 
-	log.LLvl1("--- Finished converting CONCEPT_DIMENSION ---")
+	log.Lvl2("--- Finished converting CONCEPT_DIMENSION ---")
 
 	assert.Nil(t, loaderi2b2.ParseObservationFact())
 	assert.Nil(t, loaderi2b2.ConvertObservationFact())
 
-	log.LLvl1("--- Finished converting OBSERVATION_FACT ---")
+	log.Lvl2("--- Finished converting OBSERVATION_FACT ---")
 
 	local.CloseAll()
 }

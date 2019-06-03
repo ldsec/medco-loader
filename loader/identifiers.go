@@ -128,7 +128,7 @@ func GetVariantID(chromosomeID string, startPosition int64, refAlleles, altAllel
 			chromosomeIntID = ChromosomeMintID
 			break
 		default:
-			log.Fatal("Invalid Chromosome ID")
+			log.Error("Invalid Chromosome ID")
 			return int64(-1), err
 		}
 	}
@@ -165,7 +165,8 @@ func EncodeAlleles(alleles string) int64 {
 	for i := 0; i < len(alleles); i++ {
 		mapV, err := AlleleMaping(alleles[i : i+1])
 		if err != nil {
-			log.Fatal(err)
+			log.Error(err)
+			return -1
 		}
 
 		encodedAlleles = PushBitsFromRight(encodedAlleles, 2, mapV)

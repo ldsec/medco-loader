@@ -126,7 +126,8 @@ func (so MedCoOntology) ToCSVText() string {
 		} else if so.VisualAttributes[:1] == "L" { // else if concept_leaf
 			metadata += "<?xml version=\"\"1.0\"\"?><ValueMetadata><Version>MedCo-0.1</Version><EncryptedType>CONCEPT_LEAF</EncryptedType><NodeEncryptID>" + strconv.FormatInt(so.NodeEncryptID, 10) + "</NodeEncryptID>"
 		} else {
-			log.Fatal("Wrong VisualAttribute")
+			log.Error("Wrong VisualAttribute")
+			return ""
 		}
 
 		// only internal and parent nodes can have children ;)

@@ -42,6 +42,8 @@ github.com/lca1/medco-unlynx v0.0.0-20190312131415-e12359a h1:k4CxlDw8MKxkWeQ2gm
 github.com/lca1/medco-unlynx v0.0.0-20190312131415-e12359a/go.mod h1:1684yL2mbYGMM5KG+ANuDQXq58tYq5kVJde9RI0iisY=
 github.com/lca1/medco-unlynx v0.0.0-20190430165422-7273e0cd440927680406d4f11f8182bd0f537275 h1:u7eNYhFQ/AZTblUj6w8n3MJBnVmg1tNxxuoeCUixwz8=
 github.com/lca1/medco-unlynx v0.0.0-20190430165422-7273e0cd440927680406d4f11f8182bd0f537275/go.mod h1:ye1nTpn1fuEoRC5V+cM0ykbjEwvcgN6eXsM2rIN89T0=
+github.com/lca1/medco-unlynx v0.0.0-20190430165422-dcd6aae4948e4bbc0e3d9263931be3ca436fecac h1:nQdaLIrnk8F/wqrohJ7AkN+ygxONDJ9N5ctB6MOpT8U=
+github.com/lca1/medco-unlynx v0.0.0-20190430165422-dcd6aae4948e4bbc0e3d9263931be3ca436fecac/go.mod h1:00I2j2isD6K3z8Xj4MIM5IOStT3rZQQtDkq59betkDo=
 github.com/lca1/medco-unlynx v0.1.1 h1:EuzSbt+q6FqELApEIhlFzb4fo/m0UjN6FVXma9twDBE=
 github.com/lca1/medco-unlynx v0.1.1/go.mod h1:ZG9kUzW3eVrKDKv/yvhNuzVGp3SmiiLR2qKeatiqaS8=
 github.com/lca1/medco-unlynx v0.2.0 h1:EvbEk9jBOAQtPJF7EjB1iVPcqtlj68BrATKA4MZosWg=

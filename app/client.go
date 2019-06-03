@@ -33,7 +33,6 @@ func loadV0(c *cli.Context) error {
 	groupFilePath := c.String("group")
 	entryPointIdx := c.Int("entryPointIdx")
 	sensitiveFilePath := c.String("sensitive")
-	replaySize := c.Int("replay")
 	outputPath := c.String("output")
 
 	// db settings
@@ -113,24 +112,10 @@ func loadV0(c *cli.Context) error {
 		}
 		mapSensitive[line] = struct{}{}
 	}
-
-	if replaySize < 0 {
-		log.Error("Wrong file size value (1>)", err)
-		return cli.NewExitError(err, 1)
-	} else if replaySize > 1 {
-		fGenomic.Close()
-		loadergenomic.ReplayDataset(genomicFilePath, replaySize)
-
-		fGenomic, err = os.Open(genomicFilePath)
-		if err != nil {
-			log.Error("Error while opening the new genomic file", err)
-			return cli.NewExitError(err, 1)
-		}
-	}
-
 	err = loadergenomic.LoadGenomicData(el.Roster, entryPointIdx, fOntClinical, fOntGenomic, fClinical, fGenomic, outputPath, allSensitive, mapSensitive, databaseS, false)
 	if err != nil {
-		log.Fatal("Error while loading client data:", err)
+		log.Error("Error while loading client data:", err)
+		return err
 	}
 
 	return nil

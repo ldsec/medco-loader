@@ -204,5 +204,7 @@ func main() {
 		return nil
 	}
 	err := cliApp.Run(os.Args)
-	log.ErrFatal(err)
+	if err != nil {
+		log.ErrFatal(err)
+	}
 }

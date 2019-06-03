@@ -151,7 +151,7 @@ func TestGeneratePubKey(t *testing.T) {
 	b, err := el.Aggregate.MarshalBinary()
 	assert.True(t, err == nil, err)
 
-	log.LLvl1("Aggregate Key:", base64.StdEncoding.EncodeToString(b))
+	log.Lvl2("Aggregate Key:", base64.StdEncoding.EncodeToString(b))
 }
 
 func TestGenerateFilesGroupFile(t *testing.T) {
