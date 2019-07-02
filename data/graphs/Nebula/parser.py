@@ -1,0 +1,20 @@
+import pandas as pd
+
+datapath = "output_queries_format.csv"
+df = pd.read_csv(datapath, sep=',', dtype=object)
+
+f = open("result.txt", "w+")
+
+for key in df.keys():
+    keyFormat = "{0:50}"
+
+    valFormat = ""
+    i = 1
+    for el in df[key]:
+        valFormat = valFormat + " {" + str(i) + "}"
+        i += 1
+
+    line = keyFormat + valFormat
+    f.write(line.format(key+":", df[key][0], df[key][1], df[key][2])+"\n")
+
+f.close()
