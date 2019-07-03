@@ -1,21 +1,17 @@
-import pandas as pd
 
-folder = "patient_list"
-datapath = folder + "/" + "output_queries_format.csv"
-df = pd.read_csv(datapath, sep=',', dtype=object)
+def format_data_and_store_in_file_3_nodes(df, f):
+    for key in df.keys():
+        key_format = "{0:50}"
 
-output = open("result.txt", "w+")
+        val_format = ""
+        for i in range(1, len(df[key])+1):
+            val_format = val_format + " {" + str(i) + "}"
 
-for key in df.keys():
-    keyFormat = "{0:50}"
+        line = key_format + val_format
+        f.write(line.format(key+":", df[key][0], df[key][1], df[key][2])+"\n")
 
-    valFormat = ""
-    i = 1
-    for el in df[key]:
-        valFormat = valFormat + " {" + str(i) + "}"
-        i += 1
 
-    line = keyFormat + valFormat
-    output.write(line.format(key+":", df[key][0], df[key][1], df[key][2])+"\n")
-
-output.close()
+def format_data_and_store_in_file_max(df, f):
+    for key in df.keys():
+        line = "{0:50} {1}"
+        f.write(line.format(key+":", df[key][0])+"\n")
