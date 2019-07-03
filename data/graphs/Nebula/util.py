@@ -1,9 +1,10 @@
 import pandas as pd
 
-datapath = "output_queries_format.csv"
+folder = "patient_list"
+datapath = folder + "/" + "output_queries_format.csv"
 df = pd.read_csv(datapath, sep=',', dtype=object)
 
-f = open("result.txt", "w+")
+output = open("result.txt", "w+")
 
 for key in df.keys():
     keyFormat = "{0:50}"
@@ -15,6 +16,6 @@ for key in df.keys():
         i += 1
 
     line = keyFormat + valFormat
-    f.write(line.format(key+":", df[key][0], df[key][1], df[key][2])+"\n")
+    output.write(line.format(key+":", df[key][0], df[key][1], df[key][2])+"\n")
 
-f.close()
+output.close()
