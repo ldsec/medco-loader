@@ -51,6 +51,8 @@ data/scripts/*.txt
 data/scripts/import-tool/data/output/*.csv
 data/graphs/Nebula/patient_list/*.txt
 data/graphs/Nebula/patient_list/*.pdf
+data/graphs/Nebula/query_terms/*.txt
+data/graphs/Nebula/query_terms/*.pdf
 app/*.toml
 app/files/
 app/medco-loader
