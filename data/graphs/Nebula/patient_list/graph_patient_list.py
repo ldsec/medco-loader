@@ -3,18 +3,19 @@ import numpy as np
 import pandas as pd
 
 raw_data_query_one = {
-    'x_label':  ['1x', '2x', '4x'],
-    'y1_label': [1.8, 1.9, 2],          # Insecure i2b2
-    'y2_label': [2.4, 2.4, 2.6],        # Without DDT
-    'y3_label': [90.9, 180.6, 351.3],   # With DDT
+    'x_label':  ['7', '52', '150', '451', '585', '940', '1366', '1511'],
+    'y1_label': [1180.8+121.8, 2493.2+115.0, 5019.2+159.3, 13332.4+586.2, 13639.8+197.4,
+                 20842.5+257.9, 28605.4+344.2, 31764.3+373.4],                          # i2b2
+    'y2_label': [1361.8-1180.8-121.8, 2810.2-2493.2-115.0, 5583.8-5019.2-159.3, 14603.1-13332.4-586.2,
+                 14692.7-13639.8-197.4, 22310.6-20842.5-257.9,
+                 30553.3-28605.4-344.2, 33850.3-31764.3-373.4],                         # secure protocols
+    'y_total':  [1361.8, 2810.2, 5583.8, 14603.1, 14692.7, 22310.6, 30553.3, 33850.3],  # total
 }
 
-raw_data_query_two = {
-    'x_label':  ['1x', '2x', '4x'],
-    'y1_label': [6.1, 6.4, 6.6],       # Insecure i2b2
-    'y2_label': [6.7, 7.1, 7.3],       # Without DDT
-    'y3_label': [91.6, 180.7, 357.5],  # With DDT
-}
+# convert to seconds
+raw_data_query_one['y1_label'] = [x / 1000 for x in raw_data_query_one['y1_label']]
+raw_data_query_one['y2_label'] = [x / 1000 for x in raw_data_query_one['y2_label']]
+raw_data_query_one['y_total'] = [x / 1000 for x in raw_data_query_one['y_total']]
 
 font = {'family': 'Bitstream Vera Sans',
         'size': 26}
@@ -22,19 +23,15 @@ font = {'family': 'Bitstream Vera Sans',
 plt.rc('font', **font)
 
 df = pd.DataFrame(raw_data_query_one, raw_data_query_one['x_label'])
-add = 0.1
 
-#df = pd.DataFrame(raw_data_query_two, raw_data_query_two['x_label'])
-#add = 1
-
-N = 3
+N = 8
 ind = np.arange(N)  # The x locations for the groups
 
 # Create the general blog and the "subplots" i.e. the bars
-fig, ax1 = plt.subplots(1, figsize=(14, 12))
+fig, ax1 = plt.subplots(1, figsize=(17, 11))
 
 # Set the bar width
-bar_width = 0.3
+bar_width = 0.5
 
 # Container of all bars
 bars = []
@@ -45,72 +42,55 @@ bars.append(ax1.bar(ind,
                     df['y1_label'],
                     # set the width
                     width=bar_width,
-                    label='Insecure i2b2',
-                    # with alpha 1
-                    alpha=0.5,
-                    # with color
-                    color='#1abc78'))
-
-# Create a bar plot, in position bar_l
-bars.append(ax1.bar(ind + bar_width,
-                    # using the y3_label data
-                    df['y2_label'],
-                    # set the width
-                    width=bar_width,
-                    label='MedCo',
+                    label='i2b2',
                     # with alpha 1
                     alpha=0.5,
                     # with color
                     color='#3232FF'))
 
 # Create a bar plot, in position bar_l
-bars.append(ax1.bar(ind + bar_width + bar_width,
-                    # using the y2_label data
-                    df['y3_label'],
+bars.append(ax1.bar(ind,
+                    # using the y3_label data
+                    df['y2_label'],
                     # set the width
                     width=bar_width,
-                    label='MedCo+',
+                    label='Secure protocols',
+                    bottom=df['y1_label'],
                     # with alpha 1
                     alpha=0.5,
                     # with color
-                    color='#bc1a1a'))
+                    color='#1abc78'))
 
 # Set the x ticks with names
-ax1.set_xticks(ind + bar_width + bar_width/2)
+ax1.set_xticks(ind)
 ax1.set_xticklabels(df['x_label'])
-ax1.set_yscale('symlog', basey=10)
-ax1.set_ylim([0, 100000])
-ax1.set_xlim([0, ind[2] + bar_width + bar_width + bar_width])
+ax1.set_ylim([0, 40])
+ax1.set_xlim([-bar_width, ind[len(ind)-1] + bar_width])
 
 # Labelling
-ax1.text(ind[0] + bar_width/2 - 0.08, df['y1_label'][0]+add,
-         str(df['y1_label'][0]), color='black', fontweight='bold')
-ax1.text(ind[1] + bar_width/2 - 0.08, df['y1_label'][1]+add,
-         str(df['y1_label'][1]), color='black', fontweight='bold')
-ax1.text(ind[2] + bar_width/2 - 0.08, df['y1_label'][2]+add,
-         str(df['y1_label'][2]), color='black', fontweight='bold')
-
-ax1.text(ind[0] + bar_width + bar_width/2 - 0.08, df['y2_label'][0]+add,
-         str(df['y2_label'][0]), color='black', fontweight='bold')
-ax1.text(ind[1] + bar_width + bar_width/2 - 0.08, df['y2_label'][1]+add,
-         str(df['y2_label'][1]), color='black', fontweight='bold')
-ax1.text(ind[2] + bar_width + bar_width/2 - 0.08, df['y2_label'][2]+add,
-         str(df['y2_label'][2]), color='black', fontweight='bold')
-
-ax1.text(ind[0] + bar_width + bar_width + bar_width/2 - 0.12, df['y3_label'][0]+8,
-         str(df['y3_label'][0]), color='black', fontweight='bold')
-ax1.text(ind[1] + bar_width + bar_width + bar_width/2 - 0.16, df['y3_label'][1]+16,
-         str(df['y3_label'][1]), color='black', fontweight='bold')
-ax1.text(ind[2] + bar_width + bar_width + bar_width/2 - 0.16, df['y3_label'][2]+32,
-         str(df['y3_label'][2]), color='black', fontweight='bold')
+ax1.text(ind[0] - 0.27, df['y_total'][0] + 0.5,
+         str(round((df['y_total'][0]), 2)), color='black', fontweight='bold')
+ax1.text(ind[1] - 0.27, df['y_total'][1] + 0.5,
+         str(round(df['y_total'][1], 2)), color='black', fontweight='bold')
+ax1.text(ind[2] - 0.27, df['y_total'][2] + 0.5,
+         str(round(df['y_total'][2], 2)), color='black', fontweight='bold')
+ax1.text(ind[3] - 0.27, df['y_total'][3] + 0.5,
+         str(round(df['y_total'][3], 1)), color='black', fontweight='bold')
+ax1.text(ind[4] - 0.27, df['y_total'][4] + 0.6,
+         str(round(df['y_total'][4], 1)), color='black', fontweight='bold')
+ax1.text(ind[5] - 0.27, df['y_total'][5] + 0.6,
+         str(round(df['y_total'][5], 1)), color='black', fontweight='bold')
+ax1.text(ind[6] - 0.27, df['y_total'][6] + 0.5,
+         str(round(df['y_total'][6], 1)), color='black', fontweight='bold')
+ax1.text(ind[7] - 0.27, df['y_total'][7] + 0.5,
+         str(round(df['y_total'][7], 1)), color='black', fontweight='bold')
 
 # Set the label and legends
 ax1.set_ylabel("Runtime (s)", fontsize=32)
-ax1.set_xlabel("Size of the database", fontsize=32)
+ax1.set_xlabel("Size of the result set", fontsize=32)
 plt.legend(loc='upper left', fontsize=32)
 
 ax1.tick_params(axis='x', labelsize=32)
 ax1.tick_params(axis='y', labelsize=32)
 
-plt.savefig('scalabilty_data_use_case_1.pdf', format='pdf')
-#plt.savefig('scalabilty_data_use_case_2.pdf', format='pdf')
+plt.savefig('patient_list.pdf', format='pdf')

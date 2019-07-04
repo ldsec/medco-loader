@@ -50,6 +50,7 @@ data/i2b2/converted/*.csv
 data/scripts/*.txt
 data/scripts/import-tool/data/output/*.csv
 data/graphs/Nebula/patient_list/*.txt
+data/graphs/Nebula/patient_list/*.pdf
 app/*.toml
 app/files/
 app/medco-loader
