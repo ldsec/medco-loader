@@ -24,9 +24,9 @@ plt.rc('font', **font)
 df = pd.DataFrame(raw_data_query_one, raw_data_query_one['x_label'])
 
 fig, ax1 = plt.subplots(1, figsize=(17, 11))
-ax1.plot(raw_data_query_one['x_label'], raw_data_query_one['y1_label'], label='MedCo', linewidth=2, ls='--',
+ax1.plot(raw_data_query_one['x_label'], raw_data_query_one['y_total'], label='MedCo', linewidth=2, ls='--',
          marker='o', markersize=7)
-ax1.plot(raw_data_query_one['x_label'], raw_data_query_one['y_total'],
+ax1.plot(raw_data_query_one['x_label'], raw_data_query_one['y1_label'],
          label='Insecure i2b2', linewidth=2,
          marker='o', markersize=7)
 
@@ -101,4 +101,4 @@ plt.legend(loc='upper left', fontsize=32)
 ax1.tick_params(axis='x', labelsize=32)
 ax1.tick_params(axis='y', labelsize=32)
 
-plt.savefig('query_terms.pdf', format='pdf')
+plt.savefig('query_terms.png', format='png')
