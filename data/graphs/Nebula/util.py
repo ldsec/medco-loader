@@ -19,7 +19,7 @@ def format_data_and_store_in_file_max(df, f):
         f.write(line.format(key+":", df[key][0])+"\n")
 
 
-def parse_data_set(filepath, index_files, N):
+def parse_data_set(filepath, index_files, n):
     for nbr in index_files:
         datapath = filepath + nbr
         df = pd.read_csv(datapath+".csv", sep=',', dtype=object)
@@ -38,7 +38,7 @@ def parse_data_set(filepath, index_files, N):
         size = 0
         for index, row in df.iterrows():
             df_exec = df_exec.append(row, ignore_index=True)
-            if (index % N) == 2:
+            if (index % n) == 2:
                 max_row = df_exec.max()
                 df_max_exec = df_max_exec.append(max_row, ignore_index=True)
                 df_exec.drop(df_exec.index, inplace=True)
