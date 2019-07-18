@@ -8,11 +8,13 @@ Z=[773.32, 2060.64, 4364.54, 11387.88, 14367.74, 22074.04, 30283.7, 33912.3;
    24194.7, NaN, 345820, NaN, 1302635.0, NaN, 2807409.2, NaN];
 
 Z2 = abs(inpaint_nans(Z));
-[X3,Y3] = meshgrid(1:2:100,7:15:1511);
+[X3,Y3] = meshgrid(1:2:100,7:30:1511);
 Z3 = interp2(X,Y,Z2',X3,Y3);
 Z3 = Z3/1000;
-surf(X3,Y3,log10(Z3))
+surf(X3,Y3,Z3)
+%set(gca,'zscale','log')
 
+title('Total response time')
 xlabel('Number of query terms')
 ylabel('Size of the result set')
 zlabel('Runtime (s)')
