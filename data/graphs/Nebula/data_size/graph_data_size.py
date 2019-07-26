@@ -6,10 +6,9 @@ font = {'family': 'Bitstream Vera Sans',
 plt.rc('font', **font)
 
 raw_data = {
-    'x_label':  [7, 52, 150, 451, 585, 940, 1366, 1511],
-    'insecure_i2b2': [1180.8+121.8, 2493.2+115.0, 5019.2+159.3, 13332.4+586.2, 13639.8+197.4,
-                      20842.5+257.9, 28605.4+344.2, 31764.3+373.4],
-    'medco':  [1361.8, 2810.2, 5583.8, 14603.1, 14692.7, 22310.6, 30553.3, 33850.3],
+    'x_label':  [3.17, 4.75, 9.5],
+    'insecure_i2b2': [98020.15+388.8, 151112.55+68.45, 312083.8+375.5],
+    'medco':  [100206.1, 153244.2, 314200.2],
 }
 
 # convert to seconds
@@ -26,17 +25,12 @@ ax.plot(raw_data['x_label'], raw_data['insecure_i2b2'],
         label='Insecure i2b2', linewidth=2,
         marker='o', markersize=7)
 
-ax.set_ylim([0, 40])
-ax.set_xlim([0, 1600])
-
-plt.setp(ax.get_yticklabels()[0], visible=False)
-
 # # Set the label and legends
 ax.set_ylabel("Runtime (s)", fontsize=32)
-ax.set_xlabel("Size of the result set", fontsize=32)
+ax.set_xlabel("Size of the data set (Billion rows)", fontsize=32)
 plt.legend(loc='upper left', fontsize=32)
 
 ax.tick_params(axis='x', labelsize=32)
 ax.tick_params(axis='y', labelsize=32)
 
-plt.savefig('patient_list.pdf', format='pdf')
+plt.savefig('data_size.png', format='png')
