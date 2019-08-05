@@ -65,6 +65,9 @@ data/graphs/Nebula/qr+pl/*.png
 data/graphs/Nebula/data_size/*.txt
 data/graphs/Nebula/data_size/*.pdf
 data/graphs/Nebula/data_size/*.png
+data/graphs/Nebula/ds+nn/*.txt
+data/graphs/Nebula/ds+nn/*.pdf
+data/graphs/Nebula/ds+nn/*.png
 
 app/*.toml
 app/files/

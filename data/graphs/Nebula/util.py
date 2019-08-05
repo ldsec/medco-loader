@@ -15,8 +15,9 @@ def format_data_and_store_in_file_3_nodes(df, f):
 
 def format_data_and_store_in_file_max(df, f):
     for key in df.keys():
-        line = "{0:50} {1}"
-        f.write(line.format(key+":", df[key][0])+"\n")
+        if key != "node_name" and key != "patient_list":
+            line = "{0:50} {1}"
+            f.write(line.format(key+":", df[key][0])+"\n")
 
 
 def parse_data_set(filepath, index_files, n):
