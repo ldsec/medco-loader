@@ -2,6 +2,7 @@ package loaderi2b2
 
 import (
 	"encoding/csv"
+	"errors"
 	"github.com/lca1/medco-loader/loader"
 	"github.com/lca1/medco-unlynx/services"
 	"github.com/lca1/unlynx/lib"
@@ -138,7 +139,7 @@ func LoadI2B2Data(el *onet.Roster, entryPointIdx int, directory string, files Fi
 
 	// change input filepaths
 	if len(files.Ontology) == 0 {
-		log.Fatal("No Ontology files were selected for conversion")
+		return errors.New("no ontology files were selected for conversion")
 	}
 
 	for _, name := range files.Ontology {
@@ -236,7 +237,7 @@ func LoadI2B2Data(el *onet.Roster, entryPointIdx int, directory string, files Fi
 
 	err = GenerateLoadingDataScript(databaseS)
 	if err != nil {
-		log.Fatal("Error while generating the loading data .sh file", err)
+		log.Error("Error while generating the loading data .sh file", err)
 		return err
 	}
 
@@ -244,7 +245,7 @@ func LoadI2B2Data(el *onet.Roster, entryPointIdx int, directory string, files Fi
 
 	err = LoadDataFiles()
 	if err != nil {
-		log.Fatal("Error while loading data", err)
+		log.Error("Error while loading data", err)
 		return err
 	}
 
@@ -347,7 +348,7 @@ func LoadDataFiles() error {
 func readCSV(filename string) ([][]string, error) {
 	csvInputFile, err := os.Open(InputFilePaths[filename])
 	if err != nil {
-		log.Fatal("Error opening [" + strings.ToLower(filename) + "].csv")
+		log.Error("Error opening [" + strings.ToLower(filename) + "].csv")
 		return nil, err
 	}
 	defer csvInputFile.Close()
@@ -357,7 +358,7 @@ func readCSV(filename string) ([][]string, error) {
 
 	lines, err := reader.ReadAll()
 	if err != nil {
-		log.Fatal("Error reading [" + strings.ToLower(filename) + "].csv")
+		log.Error("Error reading [" + strings.ToLower(filename) + "].csv")
 		return nil, err
 	}
 
@@ -427,7 +428,7 @@ func HasSensitiveParents(conceptPath string) (string, bool) {
 func ParseTableAccess() error {
 	lines, err := readCSV("TABLE_ACCESS")
 	if err != nil {
-		log.Fatal("Error in readCSV()")
+		log.Error("Error in readCSV()")
 		return err
 	}
 
@@ -479,7 +480,7 @@ func ConvertTableAccess() error {
 	// two new files are generated: one to store the non-sensitive data and another to store the sensitive data
 	csvOutputFile, err := os.Create(OutputFilePaths["TABLE_ACCESS"].Path)
 	if err != nil {
-		log.Fatal("Error opening [TABLE_ACCESS].csv")
+		log.Error("Error opening [TABLE_ACCESS].csv")
 		return err
 	}
 	defer csvOutputFile.Close()
@@ -505,7 +506,7 @@ func ConvertTableAccess() error {
 func ParseDummyToPatient() error {
 	lines, err := readCSV("DUMMY_TO_PATIENT")
 	if err != nil {
-		log.Fatal("Error in readCSV()")
+		log.Error("Error in readCSV()")
 		return err
 	}
 
@@ -591,7 +592,7 @@ func GenerateMedCoOntology() error {
 	for _, key := range OntologyFilesPaths {
 		err := generateNewMedCoTable(strings.Split(key, "ONTOLOGY_")[1])
 		if err != nil {
-			log.Fatal("Error generating [" + key + "].csv")
+			log.Error("Error generating [" + key + "].csv")
 			return err
 		}
 	}
@@ -601,7 +602,7 @@ func GenerateMedCoOntology() error {
 func generateNewMedCoTable(rawName string) error {
 	csvOutputFile, err := os.Create(OutputFilePaths["MEDCO_"+rawName].Path)
 	if err != nil {
-		log.Fatal("Error opening [" + rawName + "].csv")
+		log.Error("Error opening [" + rawName + "].csv")
 		return err
 	}
 	defer csvOutputFile.Close()
@@ -659,19 +660,19 @@ func ConvertLocalOntology(group *onet.Roster, entryPointIdx int) error {
 		rawName := strings.Split(key, "ONTOLOGY_")[1]
 		err := ParseLocalTable(group, entryPointIdx, key)
 		if err != nil {
-			log.Fatal("Error parsing [" + strings.ToLower(rawName) + "].csv")
+			log.Error("Error parsing [" + strings.ToLower(rawName) + "].csv")
 			return err
 		}
 		err = ConvertClearLocalTable(rawName)
 		if err != nil {
-			log.Fatal("Error converting [" + strings.ToLower(rawName) + "].csv")
+			log.Error("Error converting [" + strings.ToLower(rawName) + "].csv")
 			return err
 		}
 	}
 
 	err := ConvertSensitiveLocalTable()
 	if err != nil {
-		log.Fatal("Error converting [sensitive_tagged].csv")
+		log.Error("Error converting [sensitive_tagged].csv")
 		return err
 	}
 
@@ -683,7 +684,7 @@ func ConvertLocalOntology(group *onet.Roster, entryPointIdx int) error {
 func ParseLocalTable(group *onet.Roster, entryPointIdx int, name string) error {
 	lines, err := readCSV(name)
 	if err != nil {
-		log.Fatal("Error in readCSV()")
+		log.Error("Error in readCSV()")
 		return err
 	}
 	rawName := strings.Split(name, "ONTOLOGY_")[1]
@@ -831,11 +832,8 @@ func EncryptAndTag(list []int64, group *onet.Roster, entryPointIdx int) ([]libun
 
 	// ENCRYPTION
 	start := time.Now()
-	listEncryptedElements := make(libunlynx.CipherVector, len(list))
+	listEncryptedElements := *libunlynx.EncryptIntVector(group.Aggregate, list)
 
-	for i := int64(0); i < int64(len(list)); i++ {
-		listEncryptedElements[i] = *libunlynx.EncryptInt(group.Aggregate, list[i])
-	}
 	log.Lvl2("Finished encrypting the sensitive data... ["+strconv.FormatInt(int64(len(listEncryptedElements)), 10)+"] (", time.Since(start), ")")
 
 	// TAGGING
@@ -850,16 +848,15 @@ func EncryptAndTag(list []int64, group *onet.Roster, entryPointIdx int) ([]libun
 	)
 
 	if err != nil {
-		log.Fatal("Error during DDT:", err)
+		log.Error("Error during DDT:", err)
 		return nil, err
 	}
 
 	totalTime := time.Since(start)
 
-	tr.DDTRequestTimeCommunication = totalTime - tr.DDTRequestTimeExec
+	tr.MapTR[servicesmedco.TaggingTimeCommunication] = totalTime - tr.MapTR[servicesmedco.TaggingTimeExec]
 
-	log.Lvl2("DDT took: execution -", tr.DDTRequestTimeExec, "communication -", tr.DDTRequestTimeCommunication)
-
+	log.Lvl2("DDT took: exec -", tr.MapTR[servicesmedco.TaggingTimeExec], "commun -", tr.MapTR[servicesmedco.TaggingTimeCommunication])
 	log.Lvl2("Finished tagging the sensitive data... (", totalTime, ")")
 
 	return result, nil
@@ -870,7 +867,7 @@ func ConvertClearLocalTable(rawName string) error {
 	// two new files are generated: one to store the non-sensitive data and another to store the sensitive data
 	csvClearOutputFile, err := os.Create(OutputFilePaths["LOCAL_"+rawName].Path)
 	if err != nil {
-		log.Fatal("Error opening [" + strings.ToLower(rawName) + "].csv")
+		log.Error("Error opening [" + strings.ToLower(rawName) + "].csv")
 		return err
 	}
 	defer csvClearOutputFile.Close()
@@ -894,7 +891,7 @@ func ConvertClearLocalTable(rawName string) error {
 func ConvertSensitiveLocalTable() error {
 	csvSensitiveOutputFile, err := os.Create(OutputFilePaths["SENSITIVE_TAGGED"].Path)
 	if err != nil {
-		log.Fatal("Error opening [sensitive_tagged].csv")
+		log.Error("Error opening [sensitive_tagged].csv")
 		return err
 	}
 	defer csvSensitiveOutputFile.Close()
@@ -920,7 +917,7 @@ func ConvertSensitiveLocalTable() error {
 func ParsePatientDimension(pk kyber.Point) error {
 	lines, err := readCSV("PATIENT_DIMENSION")
 	if err != nil {
-		log.Fatal("Error in readCSV()")
+		log.Error("Error in readCSV()")
 		return err
 	}
 
@@ -977,7 +974,7 @@ func ParsePatientDimension(pk kyber.Point) error {
 func ConvertPatientDimension(pk kyber.Point, empty bool) error {
 	csvOutputFile, err := os.Create(OutputFilePaths["PATIENT_DIMENSION"].Path)
 	if err != nil {
-		log.Fatal("Error opening [patient_dimension].csv")
+		log.Error("Error opening [patient_dimension].csv")
 		return err
 	}
 	defer csvOutputFile.Close()
@@ -1019,7 +1016,7 @@ func ConvertPatientDimension(pk kyber.Point, empty bool) error {
 	// write MapNewPatientNum to csv
 	csvOutputNewPatientNumFile, err := os.Create(OutputFilePaths["NEW_PATIENT_NUM"].Path)
 	if err != nil {
-		log.Fatal("Error opening [new_patient_num].csv")
+		log.Error("Error opening [new_patient_num].csv")
 		return err
 	}
 	defer csvOutputNewPatientNumFile.Close()
@@ -1039,7 +1036,7 @@ func ConvertPatientDimension(pk kyber.Point, empty bool) error {
 func ParseVisitDimension() error {
 	lines, err := readCSV("VISIT_DIMENSION")
 	if err != nil {
-		log.Fatal("Error in readCSV()")
+		log.Error("Error in readCSV()")
 		return err
 	}
 
@@ -1110,7 +1107,7 @@ func ConvertVisitDimension(empty bool) error {
 
 	csvOutputFile, err := os.Create(OutputFilePaths["VISIT_DIMENSION"].Path)
 	if err != nil {
-		log.Fatal("Error opening [visit_dimension].csv")
+		log.Error("Error opening [visit_dimension].csv")
 		return err
 	}
 	defer csvOutputFile.Close()
@@ -1154,7 +1151,7 @@ func ConvertVisitDimension(empty bool) error {
 	// write MapNewEncounterNum to csv
 	csvOutputNewEncounterNumFile, err := os.Create(OutputFilePaths["NEW_ENCOUNTER_NUM"].Path)
 	if err != nil {
-		log.Fatal("Error opening [new_encounter_num].csv")
+		log.Error("Error opening [new_encounter_num].csv")
 		return err
 	}
 	defer csvOutputNewEncounterNumFile.Close()
@@ -1174,7 +1171,7 @@ func ConvertVisitDimension(empty bool) error {
 func ParseConceptDimension() error {
 	lines, err := readCSV("CONCEPT_DIMENSION")
 	if err != nil {
-		log.Fatal("Error in readCSV()")
+		log.Error("Error in readCSV()")
 		return err
 	}
 
@@ -1218,7 +1215,7 @@ func ParseConceptDimension() error {
 func ConvertConceptDimension() error {
 	csvOutputFile, err := os.Create(OutputFilePaths["CONCEPT_DIMENSION"].Path)
 	if err != nil {
-		log.Fatal("Error opening [concept_dimension].csv")
+		log.Error("Error opening [concept_dimension].csv")
 		return err
 	}
 	defer csvOutputFile.Close()
@@ -1256,7 +1253,7 @@ func ConvertConceptDimension() error {
 func ParseObservationFact() error {
 	lines, err := readCSV("OBSERVATION_FACT")
 	if err != nil {
-		log.Fatal("Error in readCSV()")
+		log.Error("Error in readCSV()")
 		return err
 	}
 
@@ -1342,7 +1339,7 @@ func ConvertObservationFact() error {
 
 	csvOutputFile, err := os.Create(OutputFilePaths["OBSERVATION_FACT"].Path)
 	if err != nil {
-		log.Fatal("Error opening [observation_fact].csv")
+		log.Error("Error opening [observation_fact].csv")
 		return err
 	}
 	defer csvOutputFile.Close()

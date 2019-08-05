@@ -151,7 +151,7 @@ func TestGeneratePubKey(t *testing.T) {
 	b, err := el.Aggregate.MarshalBinary()
 	assert.True(t, err == nil, err)
 
-	log.LLvl1("Aggregate Key:", base64.StdEncoding.EncodeToString(b))
+	log.Lvl2("Aggregate Key:", base64.StdEncoding.EncodeToString(b))
 }
 
 func TestGenerateFilesGroupFile(t *testing.T) {
@@ -161,12 +161,6 @@ func TestGenerateFilesGroupFile(t *testing.T) {
 
 	assert.True(t, err == nil, err)
 	generateFiles(t, el, 0)
-}
-
-func TestReplayDataset(t *testing.T) {
-	t.Skip()
-	err := loadergenomic.ReplayDataset(genomicFile, 2)
-	assert.True(t, err == nil)
 }
 
 func TestGenerateLoadingScript(t *testing.T) {

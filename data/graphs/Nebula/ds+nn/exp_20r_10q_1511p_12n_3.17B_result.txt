@@ -1,0 +1,15 @@
+count:                                             1511.0
+DDTRequestTime:                                    270.85
+KSRequestTime:                                     1193.4
+KSTimeCommunication:                               950.6
+KSTimeExec:                                        0.0
+TaggingTimeCommunication:                          229.85
+TaggingTimeExec:                                   16.55
+medco-connector-DDT:                               274.15
+medco-connector-i2b2-PDO:                          435.75
+medco-connector-i2b2-PSM:                          99798.65
+medco-connector-local-agg:                         63.5
+medco-connector-local-patient-list-masking:        923.35
+medco-connector-overall:                           102513.2
+medco-connector-unlynx-key-switch-count:           68.2
+medco-connector-unlynx-key-switch-patient-list:    1289.0

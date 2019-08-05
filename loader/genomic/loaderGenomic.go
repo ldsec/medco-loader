@@ -19,9 +19,6 @@ import (
 	"time"
 )
 
-// I2B2METADATA path to i2b2metadata schema
-const I2B2METADATA = "i2b2metadata_i2b2."
-
 // I2B2DEMODATA path to i2b2demodata schema
 const I2B2DEMODATA = "i2b2demodata_i2b2."
 
@@ -109,8 +106,7 @@ var (
    NumThreads: defines the amount of go subroutines to use when parelellizing the encryption
 */
 var (
-	NumElMap   = int64(5e6)
-	NumThreads = int(20)
+	NumElMap = int64(5e6)
 )
 
 // SensitiveIDValue contains both concept path and annotation which will be linked to a certain sensitive ID
@@ -139,72 +135,6 @@ var (
 	TextSearchIndex int64                     // needed for the observation_fact table (counter)
 )
 
-// ReplayDataset replays the dataset x number of times
-func ReplayDataset(filename string, x int) error {
-	log.LLvl1("Replaying dataset", x, "times...")
-
-	// open file to read
-	fGenomic, err := os.Open(filename)
-	if err != nil {
-		log.Fatal("Cannot open file to read:", err)
-		return err
-	}
-
-	reader := csv.NewReader(fGenomic)
-	reader.Comma = '\t'
-
-	// read all genomic file
-	record, err := reader.ReadAll()
-	if err != nil {
-		log.Fatal("Error in the ReplayDataset() - reading:", err)
-		return err
-	}
-
-	finalResult := record[:]
-
-	header := true
-	// replay x times
-	for t := 0; t < x-1; t++ {
-		for _, el := range record {
-			// not a comment or blank line
-			if string(el[0]) == "" || string(el[0][0:1]) == "#" {
-				continue
-			}
-
-			// HEADER time...
-			if header == true {
-				header = false
-				continue
-			}
-
-			finalResult = append(finalResult, el)
-		}
-	}
-
-	fGenomic.Close()
-
-	// open file to write
-	fGenomic, err = os.Create(filename)
-	if err != nil {
-		log.Fatal("Cannot open file to write:", err)
-		return err
-	}
-
-	writer := csv.NewWriter(fGenomic)
-	writer.Comma = '\t'
-
-	err = writer.WriteAll(finalResult)
-	if err != nil {
-		log.Fatal("Error in the ReplayDataset() - writing:", err)
-		return err
-	}
-
-	fGenomic.Close()
-
-	return nil
-
-}
-
 // LoadGenomicData initiates the loading process
 func LoadGenomicData(el *onet.Roster, entryPointIdx int, fOntClinical, fOntGenomic, fClinical, fGenomic *os.File, outputPath string, allSensitive bool, mapSensitive map[string]struct{}, databaseS loader.DBSettings, testing bool) error {
 	start := time.Now()
@@ -221,7 +151,7 @@ func LoadGenomicData(el *onet.Roster, entryPointIdx int, fOntClinical, fOntGenom
 		FilePathsOntology[i] = OutputFilePath + FilePathsOntology[i]
 		fp, err := os.Create(FilePathsOntology[i])
 		if err != nil {
-			log.Fatal("Error while creating", FilePathsOntology[i])
+			log.Error("Error while creating", FilePathsOntology[i])
 			return err
 		}
 		FileHandlers = append(FileHandlers, fp)
@@ -231,7 +161,7 @@ func LoadGenomicData(el *onet.Roster, entryPointIdx int, fOntClinical, fOntGenom
 		FilePathsData[i] = OutputFilePath + FilePathsData[i]
 		fp, err := os.Create(FilePathsData[i])
 		if err != nil {
-			log.Fatal("Error while creating", FilePathsData[i])
+			log.Error("Error while creating", FilePathsData[i])
 			return err
 		}
 		FileHandlers = append(FileHandlers, fp)
@@ -239,7 +169,7 @@ func LoadGenomicData(el *onet.Roster, entryPointIdx int, fOntClinical, fOntGenom
 
 	err := GenerateOntologyFiles(el, entryPointIdx, fOntClinical, fOntGenomic, mapSensitive)
 	if err != nil {
-		log.Fatal("Error while generating the ontology .csv files", err)
+		log.Error("Error while generating the ontology .csv files", err)
 		return err
 	}
 
@@ -247,7 +177,7 @@ func LoadGenomicData(el *onet.Roster, entryPointIdx int, fOntClinical, fOntGenom
 
 	err = GenerateDataFiles(el, fClinical, fGenomic)
 	if err != nil {
-		log.Fatal("Error while generating the data .csv files", err)
+		log.Error("Error while generating the data .csv files", err)
 		return err
 	}
 
@@ -258,35 +188,35 @@ func LoadGenomicData(el *onet.Roster, entryPointIdx int, fOntClinical, fOntGenom
 
 	err = GenerateLoadingOntologyScript(databaseS)
 	if err != nil {
-		log.Fatal("Error while generating the loading ontology .sh file", err)
+		log.Error("Error while generating the loading ontology .sh file", err)
 		return err
 	}
 
 	err = LoadOntologyFiles()
 	if err != nil {
-		log.Fatal("Error while loading ontology .sql file", err)
+		log.Error("Error while loading ontology .sql file", err)
 		return err
 	}
 
 	loadTime := time.Since(startLoadingOntology)
-	log.LLvl1("Loading ontology took:", loadTime)
+	log.Lvl2("Loading ontology took:", loadTime)
 
 	startLoadingData := time.Now()
 
 	err = GenerateLoadingDataScript(databaseS)
 	if err != nil {
-		log.Fatal("Error while generating the loading dataset .sh file", err)
+		log.Error("Error while generating the loading dataset .sh file", err)
 		return err
 	}
 
 	err = LoadDataFiles()
 	if err != nil {
-		log.Fatal("Error while loading dataset .sql file", err)
+		log.Error("Error while loading dataset .sql file", err)
 		return err
 	}
 
 	loadTime = time.Since(startLoadingData)
-	log.LLvl1("Loading dataset took:", loadTime)
+	log.Lvl2("Loading dataset took:", loadTime)
 
 	fOntClinical.Close()
 	fOntGenomic.Close()
@@ -300,7 +230,7 @@ func LoadGenomicData(el *onet.Roster, entryPointIdx int, fOntClinical, fOntGenom
 	FileHandlers = make([]*os.File, 0)
 
 	etlTime := time.Since(start)
-	log.LLvl1("The ETL took:", etlTime)
+	log.Lvl2("The ETL took:", etlTime)
 
 	return nil
 }
@@ -483,8 +413,6 @@ func GenerateLoadingOntologyScript(databaseS loader.DBSettings) error {
     			GRANT ALL privileges on all tables in schema genomic_annotations to i2b2;` + "\n"
 
 	for i := 0; i < len(TablenamesOntology); i++ {
-
-		//TODO: Delete this please
 		if TablenamesOntology[i] != ONT+"non_sensitive_clear" {
 			loading += "TRUNCATE " + TablenamesOntology[i] + ";\n"
 			loading += `\copy ` + TablenamesOntology[i] + ` FROM '` + FilePathsOntology[i] + `' ESCAPE '"' DELIMITER ',' CSV;` + "\n"
@@ -558,8 +486,8 @@ func LoadOntologyFiles() error {
 	cmd.Stderr = stderr
 	err := cmd.Run()
 	if err != nil {
-		log.LLvl1("Error when running command.  Error log:", stderr.String())
-		log.LLvl1("Got command status:", err.Error())
+		log.Error("Error when running command.  Error log:", stderr.String())
+		log.Error("Got command status:", err.Error())
 		return err
 	}
 
@@ -574,8 +502,8 @@ func LoadDataFiles() error {
 	cmd.Stderr = stderr
 	err := cmd.Run()
 	if err != nil {
-		log.LLvl1("Error when running command.  Error log:", stderr.String())
-		log.LLvl1("Got command status:", err.Error())
+		log.Error("Error when running command.  Error log:", stderr.String())
+		log.Error("Got command status:", err.Error())
 		return err
 	}
 
@@ -687,7 +615,7 @@ func GenerateOntologyFiles(group *onet.Roster, entryPointIdx int, fOntClinical, 
 
 	fOntClinical.Close()
 
-	log.LLvl1("Finished parsing the clinical ontology... (", len(allSensitiveIDs), ")")
+	log.Lvl2("Finished parsing the clinical ontology... (", len(allSensitiveIDs), ")")
 
 	// load genomic
 	reader = csv.NewReader(fOntGenomic)
@@ -713,7 +641,7 @@ func GenerateOntologyFiles(group *onet.Roster, entryPointIdx int, fOntClinical, 
 
 		// for every 100,000 rows parsed print a message
 		if progress%100000 == 0 {
-			log.LLvl1("Continuing parsing the genomic ontology... (", progress, ")")
+			log.Lvl2("Continuing parsing the genomic ontology... (", progress, ")")
 		}
 
 		// if it is not a commented line
@@ -746,7 +674,7 @@ func GenerateOntologyFiles(group *onet.Roster, entryPointIdx int, fOntClinical, 
 
 	fOntGenomic.Close()
 
-	log.LLvl1("Finished parsing the genomic ontology... (", len(allSensitiveIDs), ")")
+	log.Lvl2("Finished parsing the genomic ontology... (", len(allSensitiveIDs), ")")
 
 	// convert the map of sensitive IDs to a slice (this is what the DDT service/protocol gets)
 	listSensitiveIDs := make([]int64, 0)
@@ -776,7 +704,7 @@ func GenerateOntologyFiles(group *onet.Roster, entryPointIdx int, fOntClinical, 
 	err = writeMedCoSensitiveTagged(taggedValues, keyForSensitiveIDs)
 	parsingTime += time.Since(startParsing)
 
-	log.LLvl1("Parsing all ontology files took (", parsingTime, ")")
+	log.Lvl2("Parsing all ontology files took (", parsingTime, ")")
 
 	return err
 }
@@ -822,10 +750,8 @@ func GenerateDataFiles(group *onet.Roster, fClinical, fGenomic *os.File) error {
 
 		// if it is not a commented line
 		if len(record) > 0 && string(record[0]) != "" && string(record[0][0:1]) != "#" {
-
 			// the HEADER
 			if first == true {
-
 				for i, rec := range record {
 					// skip SampleID and PatientID and other similar fields
 					if _, ok := ToIgnore[rec]; !ok {
@@ -918,7 +844,7 @@ func GenerateDataFiles(group *onet.Roster, fClinical, fGenomic *os.File) error {
 							}
 						}
 					} else {
-						log.Fatal("There are elements in the dataset that do not belong to the existing ontology")
+						log.Error("There are elements in the dataset that do not belong to the existing ontology")
 						return err
 					}
 					j++
@@ -929,7 +855,7 @@ func GenerateDataFiles(group *onet.Roster, fClinical, fGenomic *os.File) error {
 	}
 	fClinical.Close()
 
-	log.LLvl1("Finished parsing the clinical dataset...")
+	log.Lvl2("Finished parsing the clinical dataset...")
 
 	// load genomic
 	reader = csv.NewReader(fGenomic)
@@ -992,7 +918,7 @@ func GenerateDataFiles(group *onet.Roster, fClinical, fGenomic *os.File) error {
 							return err
 						}
 					} else {
-						log.Fatal("There are elements in the dataset that do not belong to the existing ontology")
+						log.Error("There are elements in the dataset that do not belong to the existing ontology")
 						return err
 					}
 				}
@@ -1004,10 +930,10 @@ func GenerateDataFiles(group *onet.Roster, fClinical, fGenomic *os.File) error {
 	fGenomic.Close()
 
 	parsingTime += time.Since(startParsing)
-	log.LLvl1("Finished parsing the genomic dataset...")
-	log.LLvl1("Parsing all dataset files took (", parsingTime, ")")
+	log.Lvl2("Finished parsing the genomic dataset...")
+	log.Lvl2("Parsing all dataset files took (", parsingTime, ")")
 
-	log.LLvl1("The End. Only loading left...")
+	log.Lvl2("The End. Only loading left...")
 
 	return nil
 }
@@ -1018,7 +944,7 @@ func writeMedCoOntologyEncHeader() error {
 	_, err := FileHandlers[0].WriteString(clinicalSensitive)
 
 	if err != nil {
-		log.Fatal("Error in the writeMedCoOntologyEnc():", err)
+		log.Error("Error in the writeMedCoOntologyEnc():", err)
 		return err
 	}
 
@@ -1037,7 +963,7 @@ func writeMedCoOntologyEnc(el string) error {
 	_, err := FileHandlers[0].WriteString(clinicalSensitive)
 
 	if err != nil {
-		log.Fatal("Error in the writeMedCoOntologyEnc():", err)
+		log.Error("Error in the writeMedCoOntologyEnc():", err)
 		return err
 	}
 
@@ -1056,7 +982,7 @@ func writeMedCoOntologyLeafEnc(field, el string, id int64) error {
 	_, err := FileHandlers[0].WriteString(clinicalSensitive)
 
 	if err != nil {
-		log.Fatal("Error in the writeMedCoOntologyLeafEnc():", err)
+		log.Error("Error in the writeMedCoOntologyLeafEnc():", err)
 		return err
 	}
 
@@ -1069,7 +995,7 @@ func writeMedCoOntologyClearHeader() error {
 	_, err := FileHandlers[1].WriteString(clinical)
 
 	if err != nil {
-		log.Fatal("Error in the writeMedCoOntologyClear():", err)
+		log.Error("Error in the writeMedCoOntologyClear():", err)
 		return err
 	}
 
@@ -1088,7 +1014,7 @@ func writeMedCoOntologyClear(el string) error {
 	_, err := FileHandlers[1].WriteString(clinical)
 
 	if err != nil {
-		log.Fatal("Error in the writeMedCoOntologyClear():", err)
+		log.Error("Error in the writeMedCoOntologyClear():", err)
 		return err
 	}
 
@@ -1107,7 +1033,7 @@ func writeMedCoOntologyLeafClear(field, el string, id int64) error {
 	_, err := FileHandlers[1].WriteString(clinical)
 
 	if err != nil {
-		log.Fatal("Error in the writeMedCoOntologyLeafClear():", err)
+		log.Error("Error in the writeMedCoOntologyLeafClear():", err)
 		return err
 	}
 
@@ -1127,7 +1053,7 @@ func generateGenomicID(indexGenVariant map[string]int, record []string) (int64, 
 		return int64(-1), err
 	}
 
-	id, err := loader.GetVariantID(record[indexGenVariant["CHR"]], aux, record[indexGenVariant["RA"]], record[indexGenVariant["TSA1"]])
+	id, err := loader.GetVariantID(record[indexGenVariant["CHR"]], aux, record[indexGenVariant["RA"]], record[indexGenVariant["TSA2"]])
 	if err != nil {
 		return int64(-1), err
 	}
@@ -1204,11 +1130,11 @@ func generateMedCoOntologyGenomicAnnotation(fields []string, record []string) st
 func writeMedCoOntologyGenomicAnnotations(listEncryptedElements *libunlynx.CipherVector, annotations []string) error {
 	for i, annotation := range annotations {
 		if annotation != "NA" && annotation != "" {
-			ciphertextStr := (*listEncryptedElements)[i].Serialize()
-			_, err := FileHandlers[2].WriteString(`"` + ciphertextStr + `",` + annotation)
+			ciphertextStr, err := (*listEncryptedElements)[i].Serialize()
+			_, err = FileHandlers[2].WriteString(`"` + ciphertextStr + `",` + annotation)
 
 			if err != nil {
-				log.Fatal("Error in the writeMedCoOntologyGenomicAnnotations():", err)
+				log.Error("Error in the writeMedCoOntologyGenomicAnnotations():", err)
 				return err
 			}
 		}
@@ -1235,29 +1161,11 @@ func GenerateRandomBytes(n int) ([]byte, error) {
 func EncryptElements(list []int64, group *onet.Roster) *libunlynx.CipherVector {
 	// ENCRYPTION
 	start := time.Now()
-	listEncryptedElements := make(libunlynx.CipherVector, len(list))
 
 	// parallelize the encryption (we need this because this is so slow)
-	blockSize := int64(len(list)) / int64(NumThreads)
-	wg := libunlynx.StartParallelize(NumThreads)
-	for i := 0; i < NumThreads; i++ {
-		blockEnd := int64(i)*blockSize + blockSize
-		// the last goroutine gets the remaining content of the array
-		if i == NumThreads-1 {
-			blockEnd = int64(len(list))
-		}
+	listEncryptedElements := *libunlynx.EncryptIntVector(group.Aggregate, list)
 
-		go func(init int64, length int64) {
-			defer wg.Done()
-			for j := init; j < length; j++ {
-				listEncryptedElements[j] = *libunlynx.EncryptInt(group.Aggregate, list[j])
-			}
-			log.LLvl1("Encrypted (", length-init, ")elements")
-		}(int64(i)*blockSize, blockEnd)
-	}
-	libunlynx.EndParallelize(wg)
-
-	log.LLvl1("Finished encrypting the sensitive data... (", time.Since(start), ")")
+	log.Lvl2("Finished encrypting the sensitive data... (", time.Since(start), ")")
 
 	return &listEncryptedElements
 
@@ -1277,17 +1185,15 @@ func TagElements(listEncryptedElements *libunlynx.CipherVector, group *onet.Rost
 	)
 
 	if err != nil {
-		log.Fatal("Error during DDT:", err)
+		log.Error("Error during DDT:", err)
 		return nil, err
 	}
-
 	totalTime := time.Since(start)
+	tr.MapTR[servicesmedco.TaggingTimeCommunication] = totalTime - tr.MapTR[servicesmedco.TaggingTimeExec]
 
-	tr.DDTRequestTimeCommunication = totalTime - tr.DDTRequestTimeExec
+	log.Lvl2("DDT took: exec -", tr.MapTR[servicesmedco.TaggingTimeExec], "commun -", tr.MapTR[servicesmedco.TaggingTimeCommunication])
 
-	log.LLvl1("DDT took: exec -", tr.DDTRequestTimeExec, "commun -", tr.DDTRequestTimeCommunication)
-
-	log.LLvl1("Finished tagging the sensitive data... (", totalTime, ")")
+	log.Lvl2("Finished tagging the sensitive data... (", totalTime, ")")
 
 	return result, nil
 }
@@ -1298,7 +1204,7 @@ func writeMedCoSensitiveTaggedHeader() error {
 	_, err := FileHandlers[3].WriteString(sensitive)
 
 	if err != nil {
-		log.Fatal("Error in the writeMedCoSensitiveTagged():", err)
+		log.Error("Error in the writeMedCoSensitiveTagged():", err)
 		return err
 	}
 
@@ -1308,7 +1214,7 @@ func writeMedCoSensitiveTaggedHeader() error {
 func writeMedCoSensitiveTagged(list []libunlynx.GroupingKey, keyForSensitiveIDs []ConceptPath) error {
 
 	if len(list) != len(keyForSensitiveIDs) {
-		log.Fatal("The number of sensitive elements does not match the number of 'KeyForSensitiveID's.")
+		log.Error("The number of sensitive elements does not match the number of 'KeyForSensitiveID's.")
 		return errors.New("")
 	}
 
@@ -1324,7 +1230,7 @@ func writeMedCoSensitiveTagged(list []libunlynx.GroupingKey, keyForSensitiveIDs 
 			b, err := GenerateRandomBytes(4)
 
 			if err != nil {
-				log.Fatal("Error while generating random number", err)
+				log.Error("Error while generating random number", err)
 				return err
 			}
 
@@ -1345,7 +1251,7 @@ func writeMedCoSensitiveTagged(list []libunlynx.GroupingKey, keyForSensitiveIDs 
 		_, err := FileHandlers[3].WriteString(sensitive)
 
 		if err != nil {
-			log.Fatal("Error in the writeMedCoSensitiveTagged():", err)
+			log.Error("Error in the writeMedCoSensitiveTagged():", err)
 			return err
 		}
 
@@ -1362,7 +1268,7 @@ func writeDemodataConceptDimensionCleartextConcepts(field, el string) error {
 	_, err := FileHandlers[4].WriteString(cleartextConcepts)
 
 	if err != nil {
-		log.Fatal("Error in the writeDemodataConceptDimensionCleartextConcepts():", err)
+		log.Error("Error in the writeDemodataConceptDimensionCleartextConcepts():", err)
 		return err
 	}
 
@@ -1379,7 +1285,7 @@ func writeDemodataConceptDimensionTaggedConcepts(field string, el string) error 
 	_, err := FileHandlers[4].WriteString(taggedConcepts)
 
 	if err != nil {
-		log.Fatal("Error in the writeDemodataConceptDimensionTaggedConcepts():", err)
+		log.Error("Error in the writeDemodataConceptDimensionTaggedConcepts():", err)
 		return err
 	}
 
@@ -1395,7 +1301,7 @@ func writeDemodataPatientMapping(el string, id int64) error {
 	_, err := FileHandlers[5].WriteString(chuv)
 
 	if err != nil {
-		log.Fatal("Error in the writeDemodataPatientMapping()-Chuv:", err)
+		log.Error("Error in the writeDemodataPatientMapping()-Chuv:", err)
 		return err
 	}
 
@@ -1406,7 +1312,7 @@ func writeDemodataPatientMapping(el string, id int64) error {
 	_, err = FileHandlers[5].WriteString(hive)
 
 	if err != nil {
-		log.Fatal("Error in the writeDemodataPatientMapping()-Hive:", err)
+		log.Error("Error in the writeDemodataPatientMapping()-Hive:", err)
 		return err
 	}
 
@@ -1418,16 +1324,21 @@ func writeDemodataPatientMapping(el string, id int64) error {
 func writeDemodataPatientDimension(group *onet.Roster, id int64) error {
 
 	encryptedFlag := libunlynx.EncryptInt(group.Aggregate, 1)
-	encryptedFlagString := encryptedFlag.Serialize()
+	encryptedFlagString, err := encryptedFlag.Serialize()
+
+	if err != nil {
+		log.Error("Error in the writeDemodataPatientDimension()-Serialization:", err)
+		return err
+	}
 
 	/*patientDimension := `INSERT INTO i2b2demodata.patient_dimension VALUES (` + strconv.FormatInt(id, 10) + `, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'NOW()', NULL, 1, '` + base64.StdEncoding.EncodeToString(b) + `');` + "\n"*/
 
 	patientDimension := `"` + strconv.FormatInt(id, 10) + `",,,,,,,,,,,,,,,,"NOW()",,"1","` + encryptedFlagString + `"` + "\n"
 
-	_, err := FileHandlers[6].WriteString(patientDimension)
+	_, err = FileHandlers[6].WriteString(patientDimension)
 
 	if err != nil {
-		log.Fatal("Error in the writeDemodataPatientDimension()-Hive:", err)
+		log.Error("Error in the writeDemodataPatientDimension()-Hive:", err)
 		return err
 	}
 
@@ -1443,7 +1354,7 @@ func writeDemodataEncounterMapping(sampleID, patientID string, id int64) error {
 	_, err := FileHandlers[7].WriteString(encounterChuv)
 
 	if err != nil {
-		log.Fatal("Error in the writeDemodataEncounterMapping()-Chuv:", err)
+		log.Error("Error in the writeDemodataEncounterMapping()-Chuv:", err)
 		return err
 	}
 
@@ -1454,7 +1365,7 @@ func writeDemodataEncounterMapping(sampleID, patientID string, id int64) error {
 	_, err = FileHandlers[7].WriteString(encounterHive)
 
 	if err != nil {
-		log.Fatal("Error in the writeDemodataEncounterMapping()-Chuv:", err)
+		log.Error("Error in the writeDemodataEncounterMapping()-Chuv:", err)
 		return err
 	}
 
@@ -1470,7 +1381,7 @@ func writeDemodataVisitDimension(idV, idP int64) error {
 	_, err := FileHandlers[8].WriteString(visit)
 
 	if err != nil {
-		log.Fatal("Error in the writeDemodataVisitDimension():", err)
+		log.Error("Error in the writeDemodataVisitDimension():", err)
 		return err
 	}
 
@@ -1486,7 +1397,7 @@ func writeDemodataProviderDimension() error {
 	_, err := FileHandlers[9].WriteString(provider)
 
 	if err != nil {
-		log.Fatal("Error in the writeDemodateProviderDimension():", err)
+		log.Error("Error in the writeDemodateProviderDimension():", err)
 		return err
 	}
 
@@ -1504,7 +1415,7 @@ func writeDemodataObservationFactClear(el, idP, idV int64) error {
 	_, err := FileHandlers[10].WriteString(clear)
 
 	if err != nil {
-		log.Fatal("Error in the writeDemodataObservationFactClear():", err)
+		log.Error("Error in the writeDemodataObservationFactClear():", err)
 		return err
 	}
 
@@ -1523,7 +1434,7 @@ func writeDemodataObservationFactEnc(el int64, idP, idV int64) error {
 	_, err := FileHandlers[10].WriteString(encrypted)
 
 	if err != nil {
-		log.Fatal("Error in the writeDemodataObservationFactEnc():", err)
+		log.Error("Error in the writeDemodataObservationFactEnc():", err)
 		return err
 	}
 

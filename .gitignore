@@ -40,6 +40,9 @@ _testmain.go
 
 .DS_Store
 
+/__pycache__/
+*.pyc
+
 .idea/
 data/genomic/*.csv
 data/genomic/skcm_broad/
@@ -49,6 +52,20 @@ data/i2b2/converted/*.xml
 data/i2b2/converted/*.csv
 data/scripts/*.txt
 data/scripts/import-tool/data/output/*.csv
+
+data/graphs/Nebula/patient_list/*.txt
+data/graphs/Nebula/patient_list/*.pdf
+data/graphs/Nebula/patient_list/*.png
+data/graphs/Nebula/query_terms/*.txt
+data/graphs/Nebula/query_terms/*.pdf
+data/graphs/Nebula/query_terms/*.png
+data/graphs/Nebula/qr+pl/*.txt
+data/graphs/Nebula/qr+pl/*.pdf
+data/graphs/Nebula/qr+pl/*.png
+data/graphs/Nebula/data_size/*.txt
+data/graphs/Nebula/data_size/*.pdf
+data/graphs/Nebula/data_size/*.png
+
 app/*.toml
 app/files/
 app/medco-loader
