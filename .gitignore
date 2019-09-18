@@ -69,6 +69,10 @@ data/graphs/Nebula/data_size/*.png
 data/graphs/Nebula/ds+nn/*.txt
 data/graphs/Nebula/ds+nn/*.pdf
 data/graphs/Nebula/ds+nn/*.png
+data/graphs/Nebula/encryption/*.png
+data/graphs/Nebula/encryption/*.pdf
+data/graphs/Nebula/ddt/*.png
+data/graphs/Nebula/ddt/*.pdf
 
 app/*.toml
 app/files/
