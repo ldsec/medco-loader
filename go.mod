@@ -13,5 +13,3 @@ require (
 	go.dedis.ch/onet/v3 v3.0.24
 	gopkg.in/urfave/cli.v1 v1.20.0
 )
-
-replace github.com/ldsec/medco-unlynx v0.2.1 => ../medco-unlynx
