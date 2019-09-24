@@ -1,7 +1,7 @@
 package loader_test
 
 import (
-	"github.com/lca1/medco-loader/loader"
+	"github.com/ldsec/medco-loader/loader"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
