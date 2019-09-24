@@ -9,7 +9,9 @@ require (
 	github.com/lib/pq v1.1.1
 	github.com/satori/go.uuid v1.2.0
 	github.com/stretchr/testify v1.3.0
-	go.dedis.ch/kyber/v3 v3.0.3
-	go.dedis.ch/onet/v3 v3.0.14
+	go.dedis.ch/kyber/v3 v3.0.5
+	go.dedis.ch/onet/v3 v3.0.24
 	gopkg.in/urfave/cli.v1 v1.20.0
 )
+
+replace github.com/ldsec/medco-unlynx v0.2.1 => ../medco-unlynx

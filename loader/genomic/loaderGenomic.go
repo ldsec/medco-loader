@@ -7,6 +7,7 @@ import (
 	"encoding/csv"
 	"errors"
 	"github.com/ldsec/medco-loader/loader"
+	"github.com/ldsec/medco-loader/loader/identifiers"
 	"github.com/ldsec/medco-unlynx/services"
 	"github.com/ldsec/unlynx/lib"
 	"go.dedis.ch/onet/v3"
@@ -1053,7 +1054,7 @@ func generateGenomicID(indexGenVariant map[string]int, record []string) (int64, 
 		return int64(-1), err
 	}
 
-	id, err := loader.GetVariantID(record[indexGenVariant["CHR"]], aux, record[indexGenVariant["RA"]], record[indexGenVariant["TSA2"]])
+	id, err := identifiers.GetVariantID(record[indexGenVariant["CHR"]], aux, record[indexGenVariant["RA"]], record[indexGenVariant["TSA1"]])
 	if err != nil {
 		return int64(-1), err
 	}
